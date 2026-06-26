@@ -1,0 +1,12 @@
+[
+  {"model": "expenses.expensecategory", "pk": 1,  "fields": {"business": null, "name": "Software & Subscriptions", "description": "SaaS tools, licenses, apps", "icon": "laptop", "is_default": true}},
+  {"model": "expenses.expensecategory", "pk": 2,  "fields": {"business": null, "name": "Office Supplies",          "description": "Stationery, printing, office items", "icon": "briefcase", "is_default": true}},
+  {"model": "expenses.expensecategory", "pk": 3,  "fields": {"business": null, "name": "Travel & Transport",       "description": "Fuel, rides, flights, hotels", "icon": "car", "is_default": true}},
+  {"model": "expenses.expensecategory", "pk": 4,  "fields": {"business": null, "name": "Food & Entertainment",     "description": "Meals, client dinners, events", "icon": "utensils", "is_default": true}},
+  {"model": "expenses.expensecategory", "pk": 5,  "fields": {"business": null, "name": "Utilities",                "description": "Electricity, internet, water", "icon": "zap", "is_default": true}},
+  {"model": "expenses.expensecategory", "pk": 6,  "fields": {"business": null, "name": "Salaries & Payroll",       "description": "Staff salaries and wages", "icon": "users", "is_default": true}},
+  {"model": "expenses.expensecategory", "pk": 7,  "fields": {"business": null, "name": "Marketing & Advertising",  "description": "Ads, promotions, campaigns", "icon": "trending-up", "is_default": true}},
+  {"model": "expenses.expensecategory", "pk": 8,  "fields": {"business": null, "name": "Equipment & Hardware",     "description": "Laptops, phones, machinery", "icon": "monitor", "is_default": true}},
+  {"model": "expenses.expensecategory", "pk": 9,  "fields": {"business": null, "name": "Professional Services",    "description": "Legal, accounting, consulting", "icon": "file-text", "is_default": true}},
+  {"model": "expenses.expensecategory", "pk": 10, "fields": {"business": null, "name": "Miscellaneous",            "description": "Everything else", "icon": "more-horizontal", "is_default": true}}
+]

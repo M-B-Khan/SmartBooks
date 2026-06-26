@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 14px; color: #333; margin: 0; padding: 40px; }
+        .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
+        .business-name { font-size: 28px; font-weight: bold; color: #2563eb; }
+        .invoice-title { font-size: 32px; font-weight: bold; color: #666; text-align: right; }
+        .invoice-number { font-size: 16px; color: #666; text-align: right; }
+        .info-section { display: flex; justify-content: space-between; margin-bottom: 40px; }
+        .info-block h4 { margin: 0 0 8px 0; color: #666; font-size: 12px; text-transform: uppercase; }
+        .info-block p { margin: 2px 0; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        th { background: #2563eb; color: white; padding: 12px; text-align: left; }
+        td { padding: 10px 12px; border-bottom: 1px solid #eee; }
+        tr:nth-child(even) { background: #f9fafb; }
+        .totals { float: right; width: 300px; }
+        .totals table td { border: none; }
+        .totals .total-row td { font-weight: bold; font-size: 16px; border-top: 2px solid #333; }
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .status-paid { background: #d1fae5; color: #065f46; }
+        .status-sent { background: #dbeafe; color: #1e40af; }
+        .status-overdue { background: #fee2e2; color: #991b1b; }
+        .status-draft { background: #f3f4f6; color: #374151; }
+        .notes { margin-top: 40px; padding: 20px; background: #f9fafb; border-radius: 8px; }
+        .footer { margin-top: 60px; text-align: center; color: #999; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <div>
+            <div class="business-name">{{ business.business_name }}</div>
+            <p>{{ business.address }}</p>
+            <p>{{ business.city }}, {{ business.country }}</p>
+            <p>{{ business.business_email }}</p>
+            <p>{{ business.phone }}</p>
+        </div>
+        <div>
+            <div class="invoice-title">INVOICE</div>
+            <div class="invoice-number"># {{ invoice.invoice_number }}</div>
+            <br>
+            <span class="status-badge status-{{ invoice.status }}">
+                {{ invoice.get_status_display }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Bill To / Dates -->
+    <div class="info-section">
+        <div class="info-block">
+            <h4>Bill To</h4>
+            <p><strong>{{ invoice.client.name }}</strong></p>
+            {% if invoice.client.company_name %}
+            <p>{{ invoice.client.company_name }}</p>
+            {% endif %}
+            <p>{{ invoice.client.email }}</p>
+            <p>{{ invoice.client.phone }}</p>
+            <p>{{ invoice.client.address }}</p>
+        </div>
+        <div class="info-block" style="text-align: right;">
+            <h4>Invoice Details</h4>
+            <p>Issue Date: <strong>{{ invoice.issue_date }}</strong></p>
+            <p>Due Date: <strong>{{ invoice.due_date }}</strong></p>
+            {% if invoice.paid_at %}
+            <p>Paid On: <strong>{{ invoice.paid_at|date:"Y-m-d" }}</strong></p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Line Items -->
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Description</th>
+                <th>Qty</th>
+                <th>Unit Price</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in invoice.items.all %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ item.description }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ business.currency }} {{ item.unit_price }}</td>
+                <td>{{ business.currency }} {{ item.total_price }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Totals -->
+    <div class="totals">
+        <table>
+            <tr>
+                <td>Subtotal</td>
+                <td>{{ business.currency }} {{ invoice.subtotal }}</td>
+            </tr>
+            {% if invoice.tax_rate %}
+            <tr>
+                <td>Tax ({{ invoice.tax_rate }}%)</td>
+                <td>{{ business.currency }} {{ invoice.tax_amount }}</td>
+            </tr>
+            {% endif %}
+            {% if invoice.discount_amount %}
+            <tr>
+                <td>Discount</td>
+                <td>- {{ business.currency }} {{ invoice.discount_amount }}</td>
+            </tr>
+            {% endif %}
+            <tr class="total-row">
+                <td>Total Due</td>
+                <td>{{ business.currency }} {{ invoice.total_amount }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="clear: both;"></div>
+
+    <!-- Notes -->
+    {% if invoice.notes or invoice.terms %}
+    <div class="notes">
+        {% if invoice.notes %}
+        <p><strong>Notes:</strong> {{ invoice.notes }}</p>
+        {% endif %}
+        {% if invoice.terms %}
+        <p><strong>Terms:</strong> {{ invoice.terms }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        <p>Generated by SmartBooks — AI-Powered Business Finance Manager</p>
+    </div>
+
+</body>
+</html>
