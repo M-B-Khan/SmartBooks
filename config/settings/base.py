@@ -25,6 +25,7 @@ THIRD_PARTY_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'drf_spectacular',
+    'django_celery_results',
 ]
 
 LOCAL_APPS = [
@@ -125,9 +126,13 @@ SIMPLE_JWT = {
 }
 
 # Celery
-CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = config('REDIS_URL', default='redis://localhost:6379/0')
+# CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
+# CELERY_RESULT_BACKEND = config('REDIS_URL', default='redis://localhost:6379/0')
 CELERY_TIMEZONE = 'Asia/Karachi'
+
+CELERY_BROKER_URL = 'memory://'
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_BROKER_TRANSPORT_OPTIONS = {'max_tries': 1}
 
 # Email
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -144,9 +149,25 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
 }
 
+# CELERY_BEAT_SCHEDULE = {
+#     'check-overdue-invoices-daily': {
+#         'task': 'apps.invoices.tasks.check_overdue_invoices',
+#         'schedule': crontab(hour=0, minute=0),  # Runs every midnight
+#     },
+# }
+
+
+
 CELERY_BEAT_SCHEDULE = {
-    'check-overdue-invoices-daily': {
-        'task': 'apps.invoices.tasks.check_overdue_invoices',
-        'schedule': crontab(hour=0, minute=0),  # Runs every midnight
+    # Runs every day at 9:00 AM Pakistan time
+    'send-overdue-reminders-daily': {
+        'task': 'apps.invoices.tasks.send_overdue_reminders',
+        'schedule': crontab(hour=9, minute=0),
+    },
+
+    # Runs every day at 8:00 AM — updates statuses before reminders
+    'update-overdue-statuses-daily': {
+        'task': 'apps.invoices.tasks.update_overdue_statuses',
+        'schedule': crontab(hour=8, minute=0),
     },
 }

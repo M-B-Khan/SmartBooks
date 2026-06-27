@@ -9,7 +9,8 @@ from django.utils import timezone
 from .models import Invoice
 from .serializers import InvoiceSerializer, InvoiceListSerializer
 from .tasks import send_invoice_email
-
+from drf_spectacular.utils import extend_schema, OpenApiExample
+from rest_framework import serializers as drf_serializers
 
 class InvoiceListCreateView(generics.ListCreateAPIView):
     """
@@ -76,23 +77,29 @@ class InvoiceDetailView(generics.RetrieveUpdateDestroyAPIView):
             status=status.HTTP_204_NO_CONTENT
         )
 
+# Add this small inline serializer above the view
+class StatusUpdateSerializer(drf_serializers.Serializer):
+    status = drf_serializers.ChoiceField(
+        choices=['sent', 'paid', 'cancelled'],
+        help_text="New status for the invoice"
+    )
 
 class InvoiceStatusUpdateView(APIView):
-    """
-    POST /api/invoices/<id>/status/
-    Update invoice status with business logic validation.
-    """
-
     permission_classes = [permissions.IsAuthenticated]
 
-    VALID_TRANSITIONS = {
-        'draft': ['sent', 'cancelled'],
-        'sent': ['paid', 'overdue', 'cancelled'],
-        'overdue': ['paid', 'cancelled'],
-        'paid': [],
-        'cancelled': [],
-    }
-
+    @extend_schema(
+        request=StatusUpdateSerializer,
+        examples=[
+            OpenApiExample(
+                'Mark as Sent',
+                value={'status': 'sent'}
+            ),
+            OpenApiExample(
+                'Mark as Paid',
+                value={'status': 'paid'}
+            ),
+        ]
+    )
     def post(self, request, pk):
         invoice = get_object_or_404(
             Invoice,
@@ -101,33 +108,40 @@ class InvoiceStatusUpdateView(APIView):
         )
 
         new_status = request.data.get('status')
+
         if not new_status:
             return Response(
                 {'error': 'Status is required.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Validate transition
-        allowed = self.VALID_TRANSITIONS.get(invoice.status, [])
+        new_status = new_status.strip().lower()
+
+        valid_transitions = {
+            Invoice.STATUS_DRAFT: [Invoice.STATUS_SENT, Invoice.STATUS_CANCELLED],
+            Invoice.STATUS_SENT: [Invoice.STATUS_PAID, Invoice.STATUS_CANCELLED],
+            Invoice.STATUS_OVERDUE: [Invoice.STATUS_PAID, Invoice.STATUS_CANCELLED],
+        }
+
+        allowed = valid_transitions.get(invoice.status, [])
         if new_status not in allowed:
             return Response(
-                {'error': f'Cannot transition from "{invoice.status}" to "{new_status}".'},
+                {'error': f'Cannot transition from "{invoice.status}" to "{new_status}". Allowed: {allowed}'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Handle paid status
-        if new_status == 'paid':
+        if new_status == Invoice.STATUS_PAID:
             invoice.mark_as_paid()
         else:
             invoice.status = new_status
             invoice.save(update_fields=['status'])
 
-        # Send email when invoice is sent
-        if new_status == 'sent':
-            send_invoice_email.delay(invoice.id)
+        if new_status == Invoice.STATUS_SENT:
+            from .tasks import send_invoice_email
+            send_invoice_email(invoice.id)
 
         return Response({
-            'message': f'Invoice status updated to {new_status}.',
+            'message': f'Invoice marked as {new_status}.',
             'status': invoice.status
         })
 
@@ -205,3 +219,20 @@ class InvoiceStatsView(APIView):
         }
 
         return Response(stats)
+
+from .dashboard import get_dashboard_data
+
+
+class DashboardView(APIView):
+    """
+    GET /api/dashboard/
+    Returns complete financial summary for the business.
+    The frontend uses this single endpoint to populate the dashboard.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        business = request.user.business_profile
+        data = get_dashboard_data(business)
+        return Response(data)
