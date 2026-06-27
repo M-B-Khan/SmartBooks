@@ -367,8 +367,8 @@ This project is licensed under the MIT License.
 Software Engineer | Python & Django Developer  
 BS Software Engineering — COMSATS University Islamabad
 
-[![GitHub](https://img.shields.io/badge/GitHub-yourusername-black?style=flat-square&logo=github)](https://github.com/yourusername)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=flat-square&logo=linkedin)](https://linkedin.com/in/yourusername)
+[![GitHub](https://img.shields.io/badge/GitHub-M-B-Khan-black?style=flat-square&logo=github)](https://github.com/M-B-Khan)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=flat-square&logo=linkedin)](https://linkedin.com/in/muhammad-bilal-k-163651111)
 
 ---
 
